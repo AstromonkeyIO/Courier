@@ -222,10 +222,6 @@ mainApp.controller('facebookLoginController'/*, ['$scope'*/, function($scope, ng
 }/*]*/);
 
 
-
-
-
-
 //Home Section
 
 mainApp.controller('homeController', function($scope, ngDialog)  
@@ -285,6 +281,34 @@ mainApp.controller('homeController', function($scope, ngDialog)
       
   });
 
+  $scope.showFindCourierForm = function()
+  {
+
+
+    $("#findShipperForm").css("display", "none").fadeOut("slow");
+    $("#findCourierForm").css("display", "inline").fadeIn("slow");
+    /*
+    $("#findShipperForm").css("display", "none").fadeOut(4000, function() {
+
+      $("#findCourierForm").css("display", "inline").fadeIn(4000);
+
+    });
+    */
+
+  }
+
+  $scope.showFindShipperForm= function()
+  {
+
+    $("#findCourierForm").css("display", "none").fadeOut(4000, function() {
+
+      $("#findShipperForm").css("display", "inline").fadeIn(4000);
+
+    });
+
+  }
+
+  /*
   $scope.couriers = [
     {'name': 'Nexus S',
      'snippet': 'Fast just got faster with Nexus S.'},
@@ -293,10 +317,13 @@ mainApp.controller('homeController', function($scope, ngDialog)
     {'name': 'MOTOROLA XOOM™',
      'snippet': 'The Next, Next Generation tablet.'}
   ];
+  */
 
-  $scope.findACourierButtonPressed = function(shippingForm)
+  $scope.couriers = [];
+
+
+  $scope.findCouriersButtonPressed = function(shippingForm)
   {
-
 
     var geocoder = new google.maps.Geocoder();
 
@@ -319,16 +346,124 @@ mainApp.controller('homeController', function($scope, ngDialog)
         {
                 // do something with the geocoded result
                 //
-                console.log("destination cooridnates" + results[0].geometry.location.lat() + results[0].geometry.location.lng());
-                var latitude = results[0].geometry.location.lat();
-                var longitude = results[0].geometry.location.lng();
+          console.log("destination cooridnates" + results[0].geometry.location.lat() + results[0].geometry.location.lng());
+          var destinationLatitude = results[0].geometry.location.lat();
+          var destinationLongitude = results[0].geometry.location.lng();
+
+          var destinationGeoPoint = new Parse.GeoPoint({latitude: destinationLatitude, longitude: destinationLongitude});
+   
+          var ShipperTravelRoutes = Parse.Object.extend("ShipperTravelRoutes");                
+          var queryCouriers = new Parse.Query(ShipperTravelRoutes);
+          // Interested in locations near user.
+          queryCouriers.near("destinationGeoPoint", destinationGeoPoint);
+          // Limit what could be a lot of points.
+          queryCouriers.limit(10);
+          // Final list of objects
+          queryCouriers.find({
+          success: function(couriers) 
+          {
+
+            console.log("couriers found" + couriers);
+            for(var i = 0; i < couriers.length; i++)
+            {
+
+              var parseUserObject = couriers[i].get("user");
+              console.log("user object" + parseUserObject);
+              var userObject = {'name': parseUserObject.get("displayName"), 'profileImageURL': parseUserObject.get("profileImageURL")};
+              console.log("user element" + userObject.name);
+              console.log("user element" + userObject.profileImageURL);
+              $scope.couriers.push(userObject);
+              console.log("scope.couriers length" + $scope.couriers.length);
+
+            }
+
+            ngDialog.open({            
+              template:'<div style="width: 450px; height: 300px; text-align:center;"><ul style="list-style-type: none; max-width: 400px; max-height: 300px; white-space:nowrap; overflow-y: scroll;"><li ng-repeat="courier in couriers" style="height:290px;"><div class="profile-sidebar"><div class="profile-userpic-other"><img id="profile-image" src="https://scontent.xx.fbcdn.net/hprofile-xfp1/v/t1.0-1/c33.0.200.200/p200x200/1919122_1142741789342_7118268_n.jpg?oh=7a856de2b3098e1b3e0671fe693ebec3&oe=56FAED32" class="img-responsive" alt="" style="width:40% height: 40%;"></div><div class="profile-usertitle"><a id="profile-name" class="profile-usertitle-name">{{courier.name}}</a><div class="profile-usertitle-job">Arrives 5 miles from destination</div></div><div class="profile-userbuttons"><button type="button" class="btn btn-success btn-sm">Score: 5</button><button type="button" class="btn btn-danger btn-sm">Message</button></div></div></li></ul></div>',plain: true,scope: $scope
+              ,preCloseCallback:function(){ $scope.couriers = [];}});
+
+          },
+          error: function(couriers, error) {
+              // Execute any logic that should take place if the save fails.
+              // error is a Parse.Error with an error code and message.
+              alert('Failed to create new object, with error code: ' + error.message);
+          }
+          });
+
 
             }
         });
           //alert("yooyo");
           //ngDialog.open({ template: 'templateId' });
-        ngDialog.open({ template: '/html/listOfCouriers.html',
-        controller: 'homeController' 
+
+
+      });
+
+    } 
+    else 
+    {
+
+      alert('Geo Location feature is not supported in this browser.');
+
+    }
+
+
+}
+
+
+$scope.findShippersButtonPressed = function(shippingForm)
+{
+
+
+    var geocoder = new google.maps.Geocoder();
+
+   if (navigator.geolocation) 
+   {
+
+      navigator.geolocation.getCurrentPosition(function (p) 
+      {
+      
+        var LatLng = new google.maps.LatLng(p.coords.latitude, p.coords.longitude);
+        console.log("current location" + LatLng);
+        console.log("geocoder" + geocoder);
+          //var address = document.getElementById("address").value;
+        //var address = "new york";
+        //var address = "1600 Amphitheatre Parkway, Mountain View, CA"
+        var address = shippingForm.address + ' , ' + shippingForm.city + ' ' + shippingForm.country;
+        console.log("address" + address);
+        geocoder.geocode( { 'address': address}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK)
+        {
+
+          console.log("destination cooridnates" + results[0].geometry.location.lat() + results[0].geometry.location.lng());
+          var destinationLatitude = results[0].geometry.location.lat();
+          var destinationLongitude = results[0].geometry.location.lng();
+
+          var destinationGeoPoint = new Parse.GeoPoint({latitude: destinationLatitude, longitude: destinationLongitude});
+
+          var ShipperTravelRoutes = Parse.Object.extend("ShipperTravelRoutes");
+          var shipperTravelRoutesObject = new ShipperTravelRoutes();
+
+          shipperTravelRoutesObject.set("user", currentUser);
+          shipperTravelRoutesObject.set("destinationGeoPoint", destinationGeoPoint);
+
+          shipperTravelRoutesObject.save(null, {
+            success: function(shipperTravelRoutesObject) {
+              // Execute any logic that should take place after the object is saved.
+              alert('New object created with objectId: ' + shipperTravelRoutesObject.id);
+              ngDialog.open({ template: '/html/listOfCouriers.html',
+                controller: 'homeController' 
+              });
+
+            },
+            error: function(shipperTravelRoutesObject, error) {
+              // Execute any logic that should take place if the save fails.
+              // error is a Parse.Error with an error code and message.
+              alert('Failed to create new object, with error code: ' + error.message);
+            }
+            });
+
+
+            }
         });
 
       });
