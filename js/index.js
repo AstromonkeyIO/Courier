@@ -105,13 +105,13 @@ window.fbAsyncInit = function() {
 mainApp.controller('facebookLoginController'/*, ['$scope'*/, function($scope, ngDialog) 
 {
 
-    var arrayOfLoginPromoTexts =  ["Social Lending Platform", "Lease or Lend Items with Your Neighbors", "Help and Get to Know Your Community!"];
+    var arrayOfLoginPromoTexts =  ["Courier is a Shipping and Delivery Platform for the Sharing Economy", "Have Something that You Want to Ship?", "Find Someone in Your Area Who Can Deliver to Your Shipping Destination", "Connect and Ship Your Package!"];
     var currentIndexOfArrayOfLoginPromoTexts = 0;
 
     function changeLoginPromoText()
     {
 
-      if(currentIndexOfArrayOfLoginPromoTexts == 2)
+      if(currentIndexOfArrayOfLoginPromoTexts == 3)
       {
 
         currentIndexOfArrayOfLoginPromoTexts = 0;
@@ -136,7 +136,7 @@ mainApp.controller('facebookLoginController'/*, ['$scope'*/, function($scope, ng
 
     setInterval(function() {
        changeLoginPromoText();
-    }, 2500);
+    }, 3700);
 
 
     $scope.loginWithFacebookButtonClicked = function() 
